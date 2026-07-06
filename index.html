@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dicto Intelligence — Premium Phone Number Lookup</title>
+    
+    <!-- Leaflet CSS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --apple-font: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+            --bg-primary: #f5f5f7;
+            --bg-secondary: #ffffff;
+            --bg-dark: #1d1d1f;
+            --bg-card: rgba(255,255,255,0.98);
+            --text-primary: #1d1d1f;
+            --text-secondary: #86868b;
+            --text-tertiary: #aeaeb2;
+            --accent-blue: #0071e3;
+            --accent-blue-hover: #0077ed;
+            --accent-blue-active: #006edb;
+            --border-color: #d2d2d7;
+            --border-light: #e8e8ed;
+            --success-green: #30d158;
+            --warning-orange: #ff9f0a;
+            --error-red: #ff453a;
+            --shadow-sm: 0 2px 12px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 24px rgba(0,0,0,0.12);
+            --shadow-lg: 0 12px 48px rgba(0,0,0,0.16);
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+            --nav-height: 52px;
+            --transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        html, body {
+            font-family: var(--apple-font);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-tertiary);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        /* ===== NAVBAR (Apple Style) ===== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--nav-height);
+            background: rgba(29, 29, 31, 0.92);
+            backdrop-filter: saturate(180%) blur(24px);
+            -webkit-backdrop-filter: saturate(180%) blur(24px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .navbar-inner {
+            width: 100%;
+            max-width: 980px;
+            padding: 0 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navbar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #f5f5f7;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+        }
+
+        .navbar-logo svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .navbar-logo span {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            background: linear-gradient(135deg, #f5f5f7, #a1a1a6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            list-style: none;
+        }
+
+        .navbar-links a {
+            color: #a1a1a6;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            transition: color 0.2s;
+        }
+
+        .navbar-links a:hover {
+            color: #f5f5f7;
+        }
+
+        .navbar-auth {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #f5f5f7;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .navbar-user .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* ===== PAGE CONTAINER ===== */
+        .page {
+            display: none;
+            min-height: 100vh;
+            padding-top: var(--nav-height);
+            animation: fadeIn 0.6s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== HERO SECTION (Landing) ===== */
+        .hero {
+            min-height: calc(100vh - var(--nav-height));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 80px 24px 60px;
+            background: linear-gradient(180deg, #f5f5f7 0%, #ffffff 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 50% 30%, rgba(0,113,227,0.06) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: rgba(0,113,227,0.08);
+            border: 1px solid rgba(0,113,227,0.15);
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--accent-blue);
+            margin-bottom: 28px;
+            letter-spacing: 0.02em;
+        }
+
+        .hero h1 {
+            font-size: clamp(42px, 8vw, 72px);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.05;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .hero h1 .highlight {
+            background: linear-gradient(135deg, #0071e3, #40c4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: clamp(16px, 2.2vw, 22px);
+            color: var(--text-secondary);
+            font-weight: 400;
+            max-width: 600px;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border-radius: 980px;
+            font-family: var(--apple-font);
+            font-size: 15px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            letter-spacing: -0.01em;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-blue-hover);
+            transform: scale(1.02);
+        }
+
+        .btn-primary:active {
+            background: var(--accent-blue-active);
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent-blue);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0,113,227,0.06);
+            border-color: var(--accent-blue);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-primary);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(0,0,0,0.04);
+        }
+
+        .btn-large {
+            padding: 16px 36px;
+            font-size: 17px;
+        }
+
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* ===== FEATURES SECTION ===== */
+        .features-section {
+            padding: 100px 24px;
+            background: var(--bg-secondary);
+            text-align: center;
+        }
+
+        .features-section h2 {
+            font-size: clamp(32px, 5vw, 52px);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 16px;
+        }
+
+        .features-section > p {
+            color: var(--text-secondary);
+            font-size: 18px;
+            max-width: 560px;
+            margin: 0 auto 60px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: 32px 24px;
+            text-align: left;
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+
+        .feature-card:hover {
+            border-color: var(--border-light);
+            box-shadow: var(--shadow-sm);
+            transform: translateY(-2px);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: rgba(0,113,227,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 18px;
+            font-size: 22px;
+        }
+
+        .feature-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ===== AUTH FORMS ===== */
+        .auth-container {
+            min-height: calc(100vh - var(--nav-height));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+            background: var(--bg-primary);
+        }
+
+        .auth-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 48px 40px;
+            max-width: 440px;
+            width: 100%;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .auth-card h2 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
+        }
+
+        .auth-card .subtitle {
+            color: var(--text-secondary);
+            font-size: 15px;
+            margin-bottom: 32px;
+        }
+
+        .auth-card .subtitle a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        .auth-card .subtitle a:hover {
+            text-decoration: underline;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            letter-spacing: 0.01em;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 15px;
+            font-family: var(--apple-font);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: rgba(245,245,247,0.6);
+            transition: var(--transition);
+            outline: none;
+            color: var(--text-primary);
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--accent-blue);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0,113,227,0.15);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .form-group .input-hint {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 4px;
+        }
+
+        .form-group .error-text {
+            font-size: 12px;
+            color: var(--error-red);
+            margin-top: 4px;
+            display: none;
+        }
+
+        .form-group.error input {
+            border-color: var(--error-red);
+            background: rgba(255,69,58,0.04);
+        }
+
+        .form-group.error .error-text {
+            display: block;
+        }
+
+        .form-group.success input {
+            border-color: var(--success-green);
+        }
+
+        .form-divider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 24px 0;
+            color: var(--text-tertiary);
+            font-size: 12px;
+        }
+
+        .form-divider::before,
+        .form-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-light);
+        }
+
+        .password-strength {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .password-strength .bar {
+            flex: 1;
+            height: 3px;
+            border-radius: 2px;
+            background: var(--border-light);
+            transition: var(--transition);
+        }
+
+        .password-strength .bar.active.weak { background: var(--error-red); }
+        .password-strength .bar.active.medium { background: var(--warning-orange); }
+        .password-strength .bar.active.strong { background: var(--success-green); }
+
+        .password-strength-text {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-top: 4px;
+        }
+
+        /* ===== STEPS INDICATOR ===== */
+        .steps {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 36px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            transition: var(--transition);
+            background: white;
+        }
+
+        .step.active .step-circle {
+            border-color: var(--accent-blue);
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .step.completed .step-circle {
+            border-color: var(--success-green);
+            background: var(--success-green);
+            color: white;
+        }
+
+        .step-line {
+            width: 40px;
+            height: 2px;
+            background: var(--border-light);
+            transition: var(--transition);
+        }
+
+        .step.completed + .step-line {
+            background: var(--success-green);
+        }
+
+        .step-label {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            display: none;
+        }
+
+        /* ===== SIGNUP MULTI-STEP ===== */
+        .signup-step {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .signup-step.active {
+            display: block;
+        }
+
+        .signup-success {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .signup-success .checkmark {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--success-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 28px;
+            color: white;
+            animation: scaleIn 0.5s ease;
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0); }
+            60% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .signup-success h3 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .signup-success p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            margin-bottom: 24px;
+        }
+
+        /* ===== DASHBOARD / MAP PAGE ===== */
+        .dashboard {
+            min-height: calc(100vh - var(--nav-height));
+            padding: 24px;
+            background: var(--bg-primary);
+        }
+
+        .dashboard-header {
+            max-width: 1200px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .dashboard-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .dashboard-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 860px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .map-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+            min-height: 500px;
+            position: relative;
+        }
+
+        .map-card .map-header {
+            padding: 20px 24px 12px;
+            font-size: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .map-card #map {
+            width: 100%;
+            height: calc(100% - 52px);
+            min-height: 450px;
+        }
+
+        .info-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .info-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            padding: 24px;
+        }
+
+        .info-card h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+        }
+
+        .phone-input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .phone-input-group input {
+            flex: 1;
+            padding: 14px 18px;
+            font-size: 18px;
+            font-family: var(--apple-font);
+            font-weight: 500;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            outline: none;
+            transition: var(--transition);
+            background: rgba(245,245,247,0.6);
+            color: var(--text-primary);
+            letter-spacing: 0.5px;
+        }
+
+        .phone-input-group input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(0,113,227,0.15);
+            background: white;
+        }
+
+        .phone-input-group input::placeholder {
+            color: var(--text-tertiary);
+            font-weight: 400;
+            font-size: 16px;
+        }
+
+        /* ===== RESULTS ===== */
+        .results-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .results-section.visible {
+            display: block;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-item .label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .result-item .value {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-align: right;
+        }
+
+        .result-item .value.badge {
+            padding: 3px 10px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .value.badge.active {
+            background: rgba(48,209,88,0.12);
+            color: #248a3d;
+        }
+
+        .value.badge.landline {
+            background: rgba(255,159,10,0.12);
+            color: #b86800;
+        }
+
+        .value.badge.voip {
+            background: rgba(100,100,255,0.1);
+            color: #5555cc;
+        }
+
+        .value.badge.unknown {
+            background: rgba(174,174,178,0.15);
+            color: #636366;
+        }
+
+        .spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .spinner::after {
+            content: '';
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--border-light);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== LOADING OVERLAY ===== */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(245,245,247,0.8);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .loading-overlay.visible {
+            display: flex;
+        }
+
+        .loading-overlay .spinner-big {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border-light);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .loading-overlay p {
+            font-size: 16px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--bg-dark);
+            color: #f5f5f7;
+            padding: 14px 24px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            z-index: 3000;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+            pointer-events: none;
+            backdrop-filter: blur(12px);
+        }
+
+        .toast.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.error {
+            background: var(--error-red);
+        }
+
+        .toast.success {
+            background: var(--success-green);
+            color: #1d1d1f;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .navbar-links {
+                display: none;
+            }
+            .auth-card {
+                padding: 32px 24px;
+            }
+            .dashboard {
+                padding: 16px;
+            }
+            .hero h1 {
+                font-size: 36px;
+            }
+            .phone-input-group {
+                flex-direction: column;
+            }
+            .map-card {
+                min-height: 350px;
+            }
+            .map-card #map {
+                min-height: 300px;
+            }
+        }
+
+        /* ===== COUNTRY SELECT FLAG ===== */
+        .country-code-select {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .country-code-select select {
+            width: auto;
+            min-width: 120px;
+            padding: 12px 12px;
+            font-size: 15px;
+            font-family: var(--apple-font);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: rgba(245,245,247,0.6);
+            transition: var(--transition);
+            outline: none;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .country-code-select select:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(0,113,227,0.15);
+        }
+
+        /* ===== TERMS CHECKBOX ===== */
+        .terms-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 16px 0;
+        }
+
+        .terms-check input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            accent-color: var(--accent-blue);
+            cursor: pointer;
+        }
+
+        .terms-check label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .terms-check label a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        /* ===== LEGAL DISCLAIMER ===== */
+        .legal-disclaimer {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            text-align: center;
+            margin-top: 16px;
+            line-height: 1.5;
+            padding: 12px;
+            background: rgba(245,245,247,0.5);
+            border-radius: var(--radius-sm);
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== LOADING OVERLAY ===== -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner-big"></div>
+    <p>Processing your request...</p>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar">
+    <div class="navbar-inner">
+        <a href="#" class="navbar-logo" onclick="showPage('landing')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M2 12h20"/>
+                <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+            </svg>
+            <span>Dicto</span>
+        </a>
+        <ul class="navbar-links">
+            <li><a href="#" onclick="showPage('landing')">Home</a></li>
+            <li><a href="#" onclick="showPage('features')">Features</a></li>
+            <li><a href="#" onclick="showPage('signup')">Get Started</a></li>
+            <li><a href="#" onclick="showPage('signin')">Sign In</a></li>
+        </ul>
+        <div class="navbar-auth" id="navbarAuth">
+            <a href="#" class="btn btn-primary" style="padding:6px 18px;font-size:12px;" onclick="showPage('signup')">Get Started</a>
+        </div>
+    </div>
+</nav>
+
+<!-- ===== LANDING PAGE ===== -->
+<div class="page active" id="page-landing">
+    <section class="hero">
+        <div class="hero-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            SOC 2 Compliant · Legal Intelligence
+        </div>
+        <h1>Phone Intelligence.<br><span class="highlight">Global Reach.</span></h1>
+        <p>Enter any phone number and instantly access verified legal information, carrier details, geolocation, and regulatory data — all within a secure, privacy-first platform.</p>
+        <div class="hero-actions">
+            <a href="#" class="btn btn-primary btn-large" onclick="showPage('signup')">Start Free Trial</a>
+            <a href="#" class="btn btn-secondary btn-large" onclick="showPage('signin')">Sign In</a>
+        </div>
+        <p style="font-size:13px;margin-top:32px;color:var(--text-tertiary);">No credit card required. 10 free lookups.</p>
+    </section>
+</div>
+
+<!-- ===== FEATURES PAGE ===== -->
+<div class="page" id="page-features">
+    <section class="features-section" style="padding-top:120px;">
+        <h2>Everything you need.</h2>
+        <p>Professional phone intelligence for cybersecurity experts, investigators, and legal professionals.</p>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🌍</div>
+                <h3>Live Geolocation</h3>
+                <p>Visualize the approximate geographic location of any phone number on an interactive world map with city and region precision.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🏛️</div>
+                <h3>Legal Registry Data</h3>
+                <p>Access carrier registration, number portability status, line type classification, and regulatory authority information.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔐</div>
+                <h3>Privacy & Compliance</h3>
+                <p>All lookups are encrypted. Fully compliant with GDPR, CCPA, and SOC 2 standards. No data is stored or shared.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Risk Assessment</h3>
+                <p>Fraud scoring, spam/telemarketer detection, and number reputation data to evaluate the legitimacy of any caller.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📡</div>
+                <h3>Carrier Intelligence</h3>
+                <p>Detailed carrier information including MNC, MCC, network type (GSM, CDMA, LTE, 5G), and mobile virtual network operators.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Real-time API</h3>
+                <p>Powered by real-time telecommunication databases with sub-second lookup speeds across 195+ countries worldwide.</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ===== SIGNUP PAGE (Multi-Step) ===== -->
+<div class="page" id="page-signup">
+    <div class="auth-container">
+        <div class="auth-card">
+            <!-- Steps -->
+            <div class="steps">
+                <div class="step active" data-step="1">
+                    <div class="step-circle">1</div>
+                    <span class="step-label">Account</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" data-step="2">
+                    <div class="step-circle">2</div>
+                    <span class="step-label">Profile</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step" data-step="3">
+                    <div class="step-circle">3</div>
+                    <span class="step-label">Verify</span>
+                </div>
+            </div>
+
+            <!-- Step 1: Basic Account -->
+            <div class="signup-step active" id="signupStep1">
+                <h2>Create your account.</h2>
+                <p class="subtitle">Enter your details to get started with Dicto Intelligence.</p>
+
+                <div class="form-group" id="sg-fullname">
+                    <label>Full Name</label>
+                    <input type="text" id="sgName" placeholder="John Appleseed" autocomplete="name">
+                    <div class="error-text">Please enter your full name.</div>
+                </div>
+
+                <div class="form-group" id="sg-email">
+                    <label>Email Address</label>
+                    <input type="email" id="sgEmail" placeholder="john@example.com" autocomplete="email">
+                    <div class="error-text">Please enter a valid email address.</div>
+                </div>
+
+                <div class="form-group" id="sg-password">
+                    <label>Password</label>
+                    <input type="password" id="sgPassword" placeholder="At least 8 characters" autocomplete="new-password">
+                    <div class="password-strength">
+                        <div class="bar" id="pwBar1"></div>
+                        <div class="bar" id="pwBar2"></div>
+                        <div class="bar" id="pwBar3"></div>
+                        <div class="bar" id="pwBar4"></div>
+                    </div>
+                    <div class="password-strength-text" id="pwStrengthText">Use at least 8 characters.</div>
+                    <div class="error-text">Password must be at least 8 characters.</div>
+                </div>
+
+                <button class="btn btn-primary btn-block btn-large" onclick="goToStep(2)" style="margin-top:8px;">Continue</button>
+                <p class="subtitle" style="text-align:center;margin-top:16px;font-size:13px;">Already have an account? <a href="#" onclick="showPage('signin')">Sign In</a></p>
+            </div>
+
+            <!-- Step 2: Professional Profile -->
+            <div class="signup-step" id="signupStep2">
+                <h2>Professional profile.</h2>
+                <p class="subtitle">Tell us about yourself to personalize your experience.</p>
+
+                <div class="form-group">
+                    <label>Organization / Company</label>
+                    <input type="text" id="sgOrg" placeholder="e.g., CyberSec Inc.">
+                </div>
+
+                <div class="form-group">
+                    <label>Role / Title</label>
+                    <select id="sgRole">
+                        <option value="" disabled selected>Select your role</option>
+                        <option value="security">Cybersecurity Professional</option>
+                        <option value="investigator">Private Investigator</option>
+                        <option value="legal">Legal Professional</option>
+                        <option value="law-enforcement">Law Enforcement</option>
+                        <option value="journalist">Journalist / Researcher</option>
+                        <option value="developer">Developer / Engineer</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Country of Operation</label>
+                    <select id="sgCountry">
+                        <option value="" disabled selected>Select your country</option>
+                        <option value="US">United States</option>
+                        <option value="GB">United Kingdom</option>
+                        <option value="CA">Canada</option>
+                        <option value="AU">Australia</option>
+                        <option value="DE">Germany</option>
+                        <option value="FR">France</option>
+                        <option value="IN">India</option>
+                        <option value="JP">Japan</option>
+                        <option value="SG">Singapore</option>
+                        <option value="AE">UAE</option>
+                        <option value="BR">Brazil</option>
+                        <option value="NG">Nigeria</option>
+                        <option value="ZA">South Africa</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="terms-check">
+                    <input type="checkbox" id="sgTerms">
+                    <label for="sgTerms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. I confirm I have legal authorization to use this service for legitimate security assessments.</label>
+                </div>
+
+                <div style="display:flex;gap:12px;margin-top:8px;">
+                    <button class="btn btn-ghost" onclick="goToStep(1)" style="flex:1;">Back</button>
+                    <button class="btn btn-primary" onclick="goToStep(3)" style="flex:2;">Continue</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Verification & Complete -->
+            <div class="signup-step" id="signupStep3">
+                <h2>Verify your email.</h2>
+                <p class="subtitle">We've sent a verification code to <strong id="sgEmailDisplay">your email</strong>. Enter it below to activate your account.</p>
+
+                <div class="form-group">
+                    <label>Verification Code</label>
+                    <input type="text" id="sgCode" placeholder="Enter 6-digit code" maxlength="6" style="text-align:center;font-size:24px;letter-spacing:8px;font-weight:600;">
+                    <div class="error-text" id="sgCodeError">Invalid verification code. Please try again.</div>
+                </div>
+
+                <button class="btn btn-primary btn-block btn-large" onclick="completeSignup()">Verify & Create Account</button>
+
+                <p class="subtitle" style="text-align:center;margin-top:12px;font-size:13px;">Didn't receive a code? <a href="#" onclick="showToast('Verification code resent!','success')">Resend Code</a></p>
+
+                <div style="display:flex;gap:12px;margin-top:8px;">
+                    <button class="btn btn-ghost" onclick="goToStep(2)" style="flex:1;">Back</button>
+                </div>
+            </div>
+
+            <!-- Success state (shown after verification) -->
+            <div class="signup-step" id="signupStepSuccess">
+                <div class="signup-success">
+                    <div class="checkmark">✓</div>
+                    <h3>Account created successfully.</h3>
+                    <p>Welcome to Dicto Intelligence. You now have access to the global phone intelligence platform.</p>
+                    <button class="btn btn-primary btn-large" onclick="completeOnboarding()">Open Dashboard</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SIGNIN PAGE ===== -->
+<div class="page" id="page-signin">
+    <div class="auth-container">
+        <div class="auth-card">
+            <h2>Welcome back.</h2>
+            <p class="subtitle">Sign in to your Dicto Intelligence account.</p>
+
+            <div class="form-group" id="si-email">
+                <label>Email Address</label>
+                <input type="email" id="siEmail" placeholder="john@example.com" autocomplete="email">
+                <div class="error-text">Please enter your email address.</div>
+            </div>
+
+            <div class="form-group" id="si-password">
+                <label>Password</label>
+                <input type="password" id="siPassword" placeholder="Enter your password" autocomplete="current-password">
+                <div class="error-text">Please enter your password.</div>
+            </div>
+
+            <div style="text-align:right;margin-bottom:20px;">
+                <a href="#" style="font-size:13px;color:var(--accent-blue);text-decoration:none;">Forgot password?</a>
+            </div>
+
+            <button class="btn btn-primary btn-block btn-large" onclick="handleSignIn()">Sign In</button>
+
+            <div class="form-divider">or</div>
+
+            <button class="btn btn-secondary btn-block" style="justify-content:center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                Continue with Google
+            </button>
+
+            <p class="subtitle" style="text-align:center;margin-top:20px;font-size:13px;">Don't have an account? <a href="#" onclick="showPage('signup')">Create One</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- ===== DASHBOARD PAGE (Map + Lookup) ===== -->
+<div class="page" id="page-dashboard">
+    <div class="dashboard">
+        <div class="dashboard-header">
+            <div>
+                <h1>Intelligence Dashboard</h1>
+                <p>Enter a phone number to retrieve all available legal and location data.</p>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <span style="font-size:13px;color:var(--text-secondary);">Credits: <strong id="creditCount">10</strong></span>
+                <button class="btn btn-secondary" style="padding:6px 16px;font-size:12px;" onclick="showToast('Upgrade to Pro for unlimited lookups.','success')">Upgrade</button>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- MAP -->
+            <div class="map-card">
+                <div class="map-header">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"/></svg>
+                    Live Location
+                </div>
+                <div id="map"></div>
+            </div>
+
+            <!-- INFO PANEL -->
+            <div class="info-panel">
+                <!-- Search Card -->
+                <div class="info-card">
+                    <h3>Phone Lookup</h3>
+                    <div class="phone-input-group">
+                        <div class="country-code-select" style="flex-shrink:0;">
+                            <select id="countryCode">
+                                <option value="1">🇺🇸 +1</option>
+                                <option value="44">🇬🇧 +44</option>
+                                <option value="91">🇮🇳 +91</option>
+                                <option value="61">🇦🇺 +61</option>
+                                <option value="49">🇩🇪 +49</option>
+                                <option value="33">🇫🇷 +33</option>
+                                <option value="81">🇯🇵 +81</option>
+                                <option value="86">🇨🇳 +86</option>
+                                <option value="7">🇷🇺 +7</option>
+                                <option value="55">🇧🇷 +55</option>
+                                <option value="82">🇰🇷 +82</option>
+                                <option value="39">🇮🇹 +39</option>
+                                <option value="34">🇪🇸 +34</option>
+                                <option value="971">🇦🇪 +971</option>
+                                <option value="65">🇸🇬 +65</option>
+                                <option value="971" selected>🇦🇪 +971</option>
+                                <option value="1">🇨🇦 +1</option>
+                                <option value="52">🇲🇽 +52</option>
+                                <option value="27">🇿🇦 +27</option>
+                                <option value="234">🇳🇬 +234</option>
+                            </select>
+                        </div>
+                        <input type="text" id="phoneNumber" placeholder="Phone number" autocomplete="tel">
+                    </div>
+                    <button class="btn btn-primary btn-block" onclick="lookupPhone()" id="lookupBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        Search Number
+                    </button>
+                    <div class="legal-disclaimer">
+                        All lookups are performed on public telecommunications data and carrier databases. Location data is approximate at city/region level. This service is for authorized security and investigative purposes only.
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div class="info-card results-section" id="resultsSection">
+                    <h3>Intelligence Report</h3>
+                    <div id="resultsContent">
+                        <div class="result-item">
+                            <span class="label">Number</span>
+                            <span class="value" id="resNumber">—</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Country</span>
+                            <span class="value" id="resCountry">—</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">City / Region</span>
+                            <span class="value" id="resCity">—</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Carrier</span>
+                            <span class="value" id="resCarrier">—</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Line Type</span>
+                            <span class="value" id="resLineType">—</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Network</span>
+                            <span class="value" id="resNetwork">—</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Portability Status</span>
+                            <span class="value" id="resPortability">—</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Fraud Risk</span>
+                            <span class="value" id="resRisk">—</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Regulatory Authority</span>
+                            <span class="value" id="resRegulatory">—</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="label">Last Updated</span>
+                            <span class="value" id="resUpdated">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent lookups placeholder -->
+                <div class="info-card" style="text-align:center;color:var(--text-tertiary);font-size:13px;padding:16px;">
+                    Your lookups are private and encrypted. No history is stored.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SCRIPTS ===== -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // ===== STATE =====
+    let currentUser = null;
+    let lookupCount = 10;
+    let mapInstance = null;
+    let currentMarker = null;
+
+    // ===== TOAST =====
+    function showToast(msg, type = '') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast ' + type + ' visible';
+        clearTimeout(t._hide);
+        t._hide = setTimeout(() => t.classList.remove('visible'), 3000);
+    }
+
+    // ===== PAGE NAV =====
+    function showPage(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        const page = document.getElementById('page-' + id);
+        if (page) {
+            page.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        // If switching to signup, reset steps
+        if (id === 'signup') resetSignup();
+        // If switching to dashboard, init map
+        if (id === 'dashboard') initMap();
+        // Update nav auth state
+        updateNavbar();
+    }
+
+    function updateNavbar() {
+        const auth = document.getElementById('navbarAuth');
+        if (currentUser) {
+            const initial = currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U';
+            auth.innerHTML = `
+                <div class="navbar-user">
+                    <div class="avatar">${initial}</div>
+                    <span>${currentUser.name || 'User'}</span>
+                </div>
+                <button class="btn btn-ghost" style="padding:4px 12px;font-size:11px;color:#a1a1a6;" onclick="handleSignOut()">Sign Out</button>
+            `;
+        } else {
+            auth.innerHTML = `<a href="#" class="btn btn-primary" style="padding:6px 18px;font-size:12px;" onclick="showPage('signup')">Get Started</a>`;
+        }
+    }
+
+    // ===== PASSWORD STRENGTH =====
+    document.getElementById('sgPassword').addEventListener('input', function() {
+        const pw = this.value;
+        const bars = [1,2,3,4].map(i => document.getElementById('pwBar' + i));
+        const text = document.getElementById('pwStrengthText');
+        let score = 0;
+        if (pw.length >= 8) score++;
+        if (pw.length >= 12) score++;
+        if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+        if (/[0-9]/.test(pw) && /[^A-Za-z0-9]/.test(pw)) score++;
+
+        bars.forEach((b, i) => {
+            b.className = 'bar';
+            if (i < score) {
+                if (score <= 1) b.classList.add('active', 'weak');
+                else if (score <= 2) b.classList.add('active', 'medium');
+                else b.classList.add('active', 'strong');
+            }
+        });
+
+        const labels = ['Use at least 8 characters.', 'Weak', 'Medium', 'Strong', 'Very Strong'];
+        text.textContent = labels[score] || labels[0];
+    });
+
+    // ===== SIGNUP MULTI-STEP =====
+    let signupData = { step: 1 };
+
+    function resetSignup() {
+        signupData = { step: 1 };
+        document.querySelectorAll('.signup-step').forEach(s => s.classList.remove('active'));
+        document.getElementById('signupStep1').classList.add('active');
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active', 'completed'));
+        document.querySelector('.step[data-step="1"]').classList.add('active');
+        document.querySelectorAll('.form-group').forEach(g => g.classList.remove('error', 'success'));
+        document.getElementById('sgCodeError').style.display = 'none';
+    }
+
+    function goToStep(num) {
+        // Validate current step before moving forward
+        if (num > signupData.step) {
+            if (signupData.step === 1) {
+                // Validate step 1
+                const name = document.getElementById('sgName').value.trim();
+                const email = document.getElementById('sgEmail').value.trim();
+                const pw = document.getElementById('sgPassword').value;
+                let valid = true;
+
+                if (!name) { document.getElementById('sg-fullname').classList.add('error'); valid = false; }
+                else document.getElementById('sg-fullname').classList.remove('error');
+
+                if (!email || !email.includes('@')) { document.getElementById('sg-email').classList.add('error'); valid = false; }
+                else document.getElementById('sg-email').classList.remove('error');
+
+                if (pw.length < 8) { document.getElementById('sg-password').classList.add('error'); valid = false; }
+                else document.getElementById('sg-password').classList.remove('error');
+
+                if (!valid) { showToast('Please fix the errors above.', 'error'); return; }
+
+                signupData.name = name;
+                signupData.email = email;
+            }
+
+            if (signupData.step === 2) {
+                const terms = document.getElementById('sgTerms').checked;
+                if (!terms) { showToast('Please agree to the Terms of Service.', 'error'); return; }
+                signupData.org = document.getElementById('sgOrg').value.trim();
+                signupData.role = document.getElementById('sgRole').value;
+                signupData.country = document.getElementById('sgCountry').value;
+            }
+        }
+
+        // Update steps UI
+        document.querySelectorAll('.signup-step').forEach(s => s.classList.remove('active'));
+        document.getElementById('signupStep' + num).classList.add('active');
+        signupData.step = num;
+
+        // Update step indicators
+        document.querySelectorAll('.step').forEach(s => {
+            s.classList.remove('active', 'completed');
+            const stepNum = parseInt(s.dataset.step);
+            if (stepNum < num) s.classList.add('completed');
+            if (stepNum === num) s.classList.add('active');
+        });
+
+        if (num === 3) {
+            document.getElementById('sgEmailDisplay').textContent = signupData.email || 'your email';
+        }
+    }
+
+    function completeSignup() {
+        const code = document.getElementById('sgCode').value.trim();
+        if (code.length !== 6) {
+            document.getElementById('sgCodeError').style.display = 'block';
+            return;
+        }
+        document.getElementById('sgCodeError').style.display = 'none';
+
+        // Simulate verification
+        document.querySelectorAll('.signup-step').forEach(s => s.classList.remove('active'));
+        document.getElementById('signupStepSuccess').classList.add('active');
+
+        // Store user
+        currentUser = {
+            name: signupData.name || 'User',
+            email: signupData.email || 'user@example.com',
+            role: signupData.role || 'security'
+        };
+        updateNavbar();
+    }
+
+    function completeOnboarding() {
+        showPage('dashboard');
+    }
+
+    // ===== SIGN IN =====
+    function handleSignIn() {
+        const email = document.getElementById('siEmail').value.trim();
+        const pw = document.getElementById('siPassword').value;
+        let valid = true;
+
+        if (!email) { document.getElementById('si-email').classList.add('error'); valid = false; }
+        else document.getElementById('si-email').classList.remove('error');
+
+        if (!pw) { document.getElementById('si-password').classList.add('error'); valid = false; }
+        else document.getElementById('si-password').classList.remove('error');
+
+        if (!valid) return;
+
+        // Simulate sign in
+        currentUser = {
+            name: email.split('@')[0].replace(/[^a-zA-Z0-9]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+            email: email
+        };
+        updateNavbar();
+        showToast('Welcome back, ' + currentUser.name + '!', 'success');
+        showPage('dashboard');
+    }
+
+    function handleSignOut() {
+        currentUser = null;
+        lookupCount = 10;
+        document.getElementById('creditCount').textContent = lookupCount;
+        updateNavbar();
+        showPage('landing');
+        showToast('You have been signed out.', '');
+    }
+
+    // ===== MAP =====
+    function initMap() {
+        const container = document.getElementById('map');
+        if (!container) return;
+        if (mapInstance) {
+            setTimeout(() => mapInstance.invalidateSize(), 200);
+            return;
+        }
+
+        mapInstance = L.map('map', {
+            center: [20, 0],
+            zoom: 2,
+            zoomControl: true,
+            scrollWheelZoom: true
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> | Dicto Intelligence',
+            maxZoom: 19,
+            minZoom: 2
+        }).addTo(mapInstance);
+
+        setTimeout(() => mapInstance.invalidateSize(), 300);
+    }
+
+    // ===== PHONE LOOKUP =====
+    function lookupPhone() {
+        const code = document.getElementById('countryCode').value;
+        const number = document.getElementById('phoneNumber').value.trim().replace(/\D/g, '');
+
+        if (!number || number.length < 4) {
+            showToast('Please enter a valid phone number.', 'error');
+            return;
+        }
+
+        if (lookupCount <= 0) {
+            showToast('You have no lookup credits remaining. Please upgrade.', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('lookupBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spinner" style="padding:0;"></div> Searching...';
+        document.getElementById('loadingOverlay').classList.add('visible');
+
+        // Build full E.164 number
+        const fullNumber = '+' + code + number;
+
+        // Simulate API call with realistic data
+        setTimeout(() => {
+            lookupCount--;
+            document.getElementById('creditCount').textContent = lookupCount;
+
+            // Generate realistic mock data based on country code
+            const data = generateLookupData(code, number, fullNumber);
+
+            // Update results
+            document.getElementById('resNumber').textContent = data.number;
+            document.getElementById('resCountry').textContent = data.country;
+            document.getElementById('resCity').textContent = data.city;
+            document.getElementById('resCarrier').textContent = data.carrier;
+
+            const lineTypeEl = document.getElementById('resLineType');
+            lineTypeEl.textContent = data.lineType;
+            lineTypeEl.className = 'value badge ' + (data.lineTypeClass || '');
+
+            document.getElementById('resNetwork').textContent = data.network;
+            document.getElementById('resPortability').textContent = data.portability;
+
+            const riskEl = document.getElementById('resRisk');
+            riskEl.textContent = data.risk;
+            riskEl.style.color = data.riskColor;
+
+            document.getElementById('resRegulatory').textContent = data.regulatory;
+            document.getElementById('resUpdated').textContent = data.updated;
+
+            document.getElementById('resultsSection').classList.add('visible');
+
+            // Update map
+            if (mapInstance) {
+                if (currentMarker) mapInstance.removeLayer(currentMarker);
+
+                const lat = data.lat;
+                const lng = data.lng;
+
+                mapInstance.setView([lat, lng], 8);
+
+                currentMarker = L.marker([lat, lng]).addTo(mapInstance);
+                currentMarker.bindPopup(`
+                    <strong>${data.number}</strong><br>
+                    ${data.city}, ${data.country}<br>
+                    Carrier: ${data.carrier}<br>
+                    Line: ${data.lineType}
+                `).openPopup();
+
+                // Add a circle for approximate area
+                L.circle([lat, lng], {
+                    radius: 15000,
+                    color: '#0071e3',
+                    fillColor: '#0071e3',
+                    fillOpacity: 0.1,
+                    weight: 2,
+                    opacity: 0.3
+                }).addTo(mapInstance);
+                // Store circle reference to clear later
+                if (currentMarker._circle) mapInstance.removeLayer(currentMarker._circle);
+                currentMarker._circle = mapInstance._lastCircle;
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Search Number
+            `;
+            document.getElementById('loadingOverlay').classList.remove('visible');
+            showToast('Lookup complete. ' + lookupCount + ' credits remaining.', 'success');
+
+        }, 1800);
+    }
+
+    function generateLookupData(code, number, fullNumber) {
+        // Realistic country/city mapping
+        const regions = {
+            '1': { country: 'United States', cities: ['New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX', 'Phoenix, AZ', 'Philadelphia, PA', 'San Antonio, TX', 'San Diego, CA', 'Dallas, TX', 'San Jose, CA'], latRange: [25, 48], lngRange: [-122, -73], carrier: ['AT&T', 'Verizon', '
