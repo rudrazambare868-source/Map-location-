@@ -1736,3 +1736,148 @@
         // Realistic country/city mapping
         const regions = {
             '1': { country: 'United States', cities: ['New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX', 'Phoenix, AZ', 'Philadelphia, PA', 'San Antonio, TX', 'San Diego, CA', 'Dallas, TX', 'San Jose, CA'], latRange: [25, 48], lngRange: [-122, -73], carrier: ['AT&T', 'Verizon', '
+    function generateLookupData(code, number, fullNumber) {
+        // Realistic country/city mapping
+        const regions = {
+            '1': { 
+                country: 'United States', 
+                cities: ['New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX', 'Phoenix, AZ', 'Philadelphia, PA', 'San Antonio, TX', 'San Diego, CA', 'Dallas, TX', 'San Jose, CA'], 
+                latRange: [25, 48], lngRange: [-122, -73], 
+                carrier: ['AT&T', 'Verizon', 'T-Mobile', 'Sprint (now T-Mobile)', 'US Cellular', 'Cricket Wireless', 'Metro by T-Mobile', 'Google Fi'],
+                regulatory: 'FCC (Federal Communications Commission)'
+            },
+            '44': { 
+                country: 'United Kingdom', 
+                cities: ['London', 'Manchester', 'Birmingham', 'Leeds', 'Glasgow', 'Liverpool', 'Edinburgh', 'Bristol', 'Sheffield', 'Newcastle'],
+                latRange: [50.5, 56], lngRange: [-5, 1.5],
+                carrier: ['EE', 'Vodafone UK', 'O2 UK', 'Three UK', 'BT Mobile', 'Sky Mobile', 'Tesco Mobile', 'Giffgaff'],
+                regulatory: 'Ofcom (Office of Communications)'
+            },
+            '91': { 
+                country: 'India', 
+                cities: ['Mumbai, MH', 'Delhi', 'Bangalore, KA', 'Hyderabad, TS', 'Chennai, TN', 'Kolkata, WB', 'Pune, MH', 'Ahmedabad, GJ', 'Jaipur, RJ', 'Lucknow, UP'],
+                latRange: [8, 33], lngRange: [68, 88],
+                carrier: ['Jio', 'Airtel', 'Vi (Vodafone Idea)', 'BSNL', 'MTNL'],
+                regulatory: 'TRAI (Telecom Regulatory Authority of India)'
+            },
+            '61': { 
+                country: 'Australia', 
+                cities: ['Sydney, NSW', 'Melbourne, VIC', 'Brisbane, QLD', 'Perth, WA', 'Adelaide, SA', 'Gold Coast, QLD', 'Canberra, ACT', 'Newcastle, NSW', 'Hobart, TAS', 'Darwin, NT'],
+                latRange: [-42, -12], lngRange: [113, 153],
+                carrier: ['Telstra', 'Optus', 'Vodafone Australia', 'TPG Telecom', 'iiNet', 'Amaysim', 'Belong'],
+                regulatory: 'ACMA (Australian Communications and Media Authority)'
+            },
+            '49': { 
+                country: 'Germany', 
+                cities: ['Berlin', 'Munich', 'Hamburg', 'Frankfurt', 'Cologne', 'Stuttgart', 'Düsseldorf', 'Leipzig', 'Dresden', 'Hannover'],
+                latRange: [47.5, 55], lngRange: [5.5, 15],
+                carrier: ['Deutsche Telekom', 'Vodafone DE', 'O2 Germany', 'Telefónica DE', '1&1 Drillisch'],
+                regulatory: 'BNetzA (Bundesnetzagentur)'
+            },
+            '33': { 
+                country: 'France', 
+                cities: ['Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice', 'Nantes', 'Strasbourg', 'Montpellier', 'Bordeaux', 'Lille'],
+                latRange: [42.5, 51], lngRange: [-5, 8],
+                carrier: ['Orange France', 'SFR', 'Bouygues Telecom', 'Free Mobile', 'La Poste Mobile'],
+                regulatory: 'ARCEP (Autorité de Régulation des Communications Électroniques)'
+            },
+            '971': { 
+                country: 'United Arab Emirates', 
+                cities: ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah', 'Fujairah', 'Umm Al Quwain', 'Al Ain'],
+                latRange: [22.5, 25.5], lngRange: [51.5, 56.5],
+                carrier: ['Etisalat (e&)', 'du (Emirates Integrated Telecommunications)'],
+                regulatory: 'TDRA (Telecommunications and Digital Government Regulatory Authority)'
+            },
+            '7': { 
+                country: 'Russia', 
+                cities: ['Moscow', 'Saint Petersburg', 'Novosibirsk', 'Yekaterinburg', 'Kazan', 'Nizhny Novgorod', 'Chelyabinsk', 'Samara', 'Omsk', 'Rostov-on-Don'],
+                latRange: [43, 68], lngRange: [28, 135],
+                carrier: ['MTS', 'MegaFon', 'Beeline (VimpelCom)', 'Tele2 Russia', 'Rostelecom', 'Yota'],
+                regulatory: 'RKN (Roskomnadzor)'
+            }
+        };
+
+        // Default fallback
+        const region = regions[code] || {
+            country: 'Unknown',
+            cities: ['Unknown City'],
+            latRange: [20, 40], lngRange: [-10, 40],
+            carrier: ['Regional Carrier'],
+            regulatory: 'Local Regulatory Authority'
+        };
+
+        const cityIndex = parseInt(number.slice(-2), 16) % region.cities.length;
+        const city = region.cities[cityIndex] || region.cities[0];
+
+        const lat = region.latRange[0] + (parseInt(number.slice(-4), 16) % 100) / 100 * (region.latRange[1] - region.latRange[0]);
+        const lng = region.lngRange[0] + (parseInt(number.slice(-3), 16) % 100) / 100 * (region.lngRange[1] - region.lngRange[0]);
+
+        const carrierIndex = (parseInt(number.slice(-2), 16) + number.length) % region.carrier.length;
+        const carrier = region.carrier[carrierIndex] || region.carrier[0];
+
+        const lineTypes = ['Mobile', 'Mobile', 'Mobile', 'Landline', 'Mobile', 'VoIP', 'Mobile', 'Landline'];
+        const lineType = lineTypes[parseInt(number.slice(-1), 16) % lineTypes.length];
+
+        const risks = ['Low', 'Low', 'Low', 'Low', 'Medium', 'Low', 'Low', 'Unknown'];
+        const risk = risks[parseInt(number.slice(-2), 16) % risks.length];
+
+        const networks = ['GSM / LTE / 5G NR', 'GSM / UMTS / LTE', 'LTE / 5G NR', 'CDMA / LTE', 'GSM / LTE', 'LTE / 5G NR'];
+        const network = networks[parseInt(number.slice(-1), 16) % networks.length];
+
+        const ported = (parseInt(number.slice(-1), 16) % 5 === 0) ? 'Yes (ported from ' + region.carrier[(carrierIndex + 1) % region.carrier.length] + ')' : 'No (original carrier)';
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) + ' ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+        const lineTypeClass = lineType === 'Mobile' ? 'active' : lineType === 'Landline' ? 'landline' : lineType === 'VoIP' ? 'voip' : 'unknown';
+        const riskColor = risk === 'Low' ? '#248a3d' : risk === 'Medium' ? '#b86800' : risk === 'High' ? '#d32f2f' : '#636366';
+
+        return {
+            number: fullNumber,
+            country: region.country,
+            city: city,
+            carrier: carrier,
+            lineType: lineType,
+            lineTypeClass: lineTypeClass,
+            network: network,
+            portability: ported,
+            risk: risk,
+            riskColor: riskColor,
+            regulatory: region.regulatory,
+            updated: dateStr,
+            lat: lat,
+            lng: lng
+        };
+    }
+
+    // ===== ENTER KEY SUPPORT =====
+    document.getElementById('phoneNumber').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') lookupPhone();
+    });
+
+    // Allow Enter key on signin
+    document.getElementById('siPassword').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') handleSignIn();
+    });
+
+    // ===== INIT =====
+    document.addEventListener('DOMContentLoaded', function() {
+        updateNavbar();
+        // Pre-fill demo number for dashboard
+        if (document.getElementById('phoneNumber')) {
+            document.getElementById('phoneNumber').placeholder = 'e.g. 5550123456';
+        }
+    });
+
+    // Listen for dashboard page show to init map
+    const observer = new MutationObserver(() => {
+        const dash = document.getElementById('page-dashboard');
+        if (dash && dash.classList.contains('active') && !mapInstance) {
+            setTimeout(initMap, 300);
+        }
+    });
+    document.querySelectorAll('.page').forEach(p => observer.observe(p, { attributes: true, attributeFilter: ['class'] }));
+</script>
+
+</body>
+</html>
